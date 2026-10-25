@@ -9,3 +9,4 @@ Colony Plotter dello Squadrone ACFS. Progetto, decisioni e stato stanno nella **
 - `git config core.autocrlf input` in questo repo, su ogni PC.
 - Spansh è un servizio gratuito: una ricerca alla volta, con una pausa, e mai dal browser (non manda CORS).
 - Le regole del gioco (raggio, Contatto, fazioni del sistema nuovo) non si deducono: stanno nel `CLAUDE.md` del tool, "Fazioni di un sistema colonizzato"; se manca qualcosa, chiedere all'utente.
+- La **Colonization Mega Guide** (guida di riferimento indicata dall'utente) è riassunta in [`docs/mega-guide.md`](docs/mega-guide.md), con la versione letta: leggerla prima di cambiare i criteri degli obiettivi o il Ponte, e rileggere la guida quando esce una versione nuova.
