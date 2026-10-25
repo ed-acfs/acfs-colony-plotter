@@ -1,0 +1,13 @@
+{
+  "name": "acfs-colony-plotter",
+  "private": true,
+  "description": "ACFS Colony Plotter: obiettivi di colonizzazione attorno alle stazioni di Flotta Stellare, e ponti per raggiungerli",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "targets": "node bin/targets.mjs",
+    "test": "node --test"
+  }
+}
