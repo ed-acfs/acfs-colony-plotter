@@ -10,9 +10,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
-import { anchorsFrom } from '../src/anchors.mjs';
-import { ringedBodiesAround, systemsAround } from '../src/spansh.mjs';
-import { CLAIM_RADIUS_LY, buildTargets } from '../src/targets.mjs';
+import { anchorsFrom, buildTargets, colonisationData, searchAround } from '../src/index.mjs';
 
 const { values } = parseArgs({
   options: {
@@ -42,22 +40,14 @@ console.log(`${anchors.length} punti di partenza`);
 
 let found = [];
 let ringed = [];
-if (values.cached) {
+if (!values.cached) {
+  ({ found, ringed } = await searchAround(anchors, { log: message => console.log(message) }));
+} else {
   const raw = JSON.parse(readFileSync(values.raw, 'utf8'));
   const byName = new Map(raw.anchors.map((name, i) => [name, raw.found[i]]));
   found = anchors.map(a => byName.get(a.name) ?? []);
   ringed = raw.ringed;
   console.log(`Risposte di Spansh da ${values.raw} (${raw.generated_at})`);
-}
-for (const [index, anchor] of (values.cached ? [] : anchors).entries()) {
-  try {
-    found.push(await systemsAround(anchor.name, CLAIM_RADIUS_LY));
-    ringed.push(...await ringedBodiesAround(anchor.name, CLAIM_RADIUS_LY));
-  } catch (err) {
-    console.warn(`${anchor.name}: ricerca su Spansh non riuscita (${err.message})`);
-    found.push([]);
-  }
-  if ((index + 1) % 25 === 0) console.log(`  ${index + 1}/${anchors.length}`);
 }
 
 mkdirSync(path.dirname(values.out), { recursive: true });
@@ -66,14 +56,7 @@ if (!values.cached) {
   writeFileSync(values.raw, JSON.stringify({ generated_at: new Date().toISOString(), anchors: anchors.map(a => a.name), found, ringed }));
 }
 const targets = buildTargets(anchors, found, values.faction, { ringed });
-writeFileSync(values.out, JSON.stringify({
-  generated_at: new Date().toISOString(),
-  faction: values.faction,
-  radius_ly: CLAIM_RADIUS_LY,
-  anchors: anchors.map(({ name, id64, x, y, z, stations }) => ({ name, id64, x, y, z, stations })),
-  count: targets.length,
-  targets,
-}, null, 1));
+writeFileSync(values.out, JSON.stringify(colonisationData(anchors, targets, values.faction), null, 1));
 const free = targets.filter(t => t.status === 'free');
 console.log(`${targets.length} obiettivi (${free.length} liberi, ${targets.length - free.length} già reclamati) in ${values.out}`);
 for (const t of free.slice(0, 10)) {

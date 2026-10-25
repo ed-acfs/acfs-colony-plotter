@@ -9,5 +9,8 @@
   "scripts": {
     "targets": "node bin/targets.mjs",
     "test": "node --test"
+  },
+  "exports": {
+    ".": "./src/index.mjs"
   }
 }

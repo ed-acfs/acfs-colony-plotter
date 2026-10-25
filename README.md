@@ -10,7 +10,9 @@ node bin/targets.mjs --anchor "HIP 21437"        # solo da uno o più sistemi (r
 npm test
 ```
 
-Scrive `data/targets.json` (cartella ignorata da git). Node 24, nessuna dipendenza.
+Scrive `data/targets.json` (cartella ignorata da git) e le risposte grezze di Spansh in `data/spansh-raw.json`, da cui `--cached` ricalcola in pochi secondi dopo un ritocco dei criteri. Node 24, nessuna dipendenza.
+
+Il calcolo è anche una funzione (`computeColonisation` in `src/index.mjs`, il punto d'ingresso del pacchetto): `acfs-server` la chiama ogni giorno con i sistemi che scarica da Spansh e serve il risultato su `/v1/colonisation`, solo ai membri dello Squadrone, per la pagina "ACFS Colony Plotter" del tool.
 
 1. **Punti di partenza** (`src/anchors.mjs`): i sistemi del `bgs.json` del tool con almeno una stazione controllata da Flotta Stellare. Ogni stazione ha il Contatto di Colonizzazione; cantieri, navi della colonizzazione, megaship, carrier e insediamenti di Odyssey no.
 2. **Ricerca** (`src/spansh.mjs`): per ogni punto di partenza, i sistemi entro 15 ly dalla ricerca di Spansh, che dà anche i disabitati con i loro corpi, e i corpi con anelli dalla ricerca dei corpi (quella dei sistemi non dice se un corpo ha anelli). Una ricerca alla volta, con una pausa: niente archivio della galassia da 117 GB.
