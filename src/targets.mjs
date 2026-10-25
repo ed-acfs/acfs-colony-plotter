@@ -29,11 +29,19 @@ export function colonisationStatus(system) {
 
 /**
  * `found`: per ogni punto di partenza (`anchors`, stesso ordine), i sistemi che la ricerca ha dato
- * attorno. Restano i sistemi liberi o reclamati (questi segnati, per sapere che sono presi), senza
- * i punti di partenza stessi; ordinati dal punteggio più alto.
+ * attorno; `ringed`: i corpi con anelli trovati attorno ai punti di partenza (in qualunque ordine).
+ * Restano i sistemi liberi o reclamati (questi segnati, per sapere che sono presi), senza i punti
+ * di partenza stessi; ordinati dal punteggio più alto.
  */
-export function buildTargets(anchors, found, faction, { radius = CLAIM_RADIUS_LY } = {}) {
+export function buildTargets(anchors, found, faction, { radius = CLAIM_RADIUS_LY, ringed = [] } = {}) {
   const targets = new Map();
+  const ringsBySystem = new Map();
+  for (const body of ringed) {
+    const id64 = String(body.system_id64);
+    const list = ringsBySystem.get(id64) ?? [];
+    if (!list.some(b => b.name === body.name)) list.push(body);
+    ringsBySystem.set(id64, list);
+  }
   anchors.forEach((anchor, index) => {
     for (const system of found[index] ?? []) {
       const status = colonisationStatus(system);
@@ -43,7 +51,8 @@ export function buildTargets(anchors, found, faction, { radius = CLAIM_RADIUS_LY
       if (away > radius) continue;
       let target = targets.get(id64);
       if (!target) {
-        const reasons = reasonsFor(system.bodies ?? [], system.body_count ?? (system.bodies ?? []).length);
+        const ringedHere = ringsBySystem.get(id64) ?? [];
+        const reasons = reasonsFor(system.bodies ?? [], system.body_count ?? (system.bodies ?? []).length, ringedHere);
         target = {
           name: system.name,
           id64,
@@ -53,6 +62,15 @@ export function buildTargets(anchors, found, faction, { radius = CLAIM_RADIUS_LY
           status,
           bodyCount: system.body_count ?? null,
           stars: (system.bodies ?? []).filter(b => b.type === 'Star').map(b => b.subtype),
+          rings: ringedHere.map(b => ({
+            body: b.name,
+            subtype: b.subtype ?? null,
+            rings: (b.rings ?? []).map(r => ({
+              type: r.type,
+              reserve: b.reserve_level ?? null,
+              hotspots: (r.signals ?? []).map(s => ({ name: s.name, count: s.count })),
+            })),
+          })),
           reasons,
           score: scoreOf(reasons),
           spanshUpdatedAt: system.updated_at ?? null,

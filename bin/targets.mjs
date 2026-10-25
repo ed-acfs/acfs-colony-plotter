@@ -10,7 +10,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
 import { anchorsFrom } from '../src/anchors.mjs';
-import { systemsAround } from '../src/spansh.mjs';
+import { ringedBodiesAround, systemsAround } from '../src/spansh.mjs';
 import { CLAIM_RADIUS_LY, buildTargets } from '../src/targets.mjs';
 
 const { values } = parseArgs({
@@ -38,9 +38,11 @@ if (values.anchor?.length) {
 console.log(`${anchors.length} punti di partenza`);
 
 const found = [];
+const ringed = [];
 for (const [index, anchor] of anchors.entries()) {
   try {
     found.push(await systemsAround(anchor.name, CLAIM_RADIUS_LY));
+    ringed.push(...await ringedBodiesAround(anchor.name, CLAIM_RADIUS_LY));
   } catch (err) {
     console.warn(`${anchor.name}: ricerca su Spansh non riuscita (${err.message})`);
     found.push([]);
@@ -48,7 +50,7 @@ for (const [index, anchor] of anchors.entries()) {
   if ((index + 1) % 25 === 0) console.log(`  ${index + 1}/${anchors.length}`);
 }
 
-const targets = buildTargets(anchors, found, values.faction);
+const targets = buildTargets(anchors, found, values.faction, { ringed });
 mkdirSync(path.dirname(values.out), { recursive: true });
 writeFileSync(values.out, JSON.stringify({
   generated_at: new Date().toISOString(),

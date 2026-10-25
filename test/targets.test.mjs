@@ -70,3 +70,14 @@ test('obiettivi: uniti fra più punti di partenza, abitati esclusi, dal punteggi
   assert.deepEqual(acqua.from.map(f => [f.name, f.distance]), [['Due', 4], ['Uno', 6]]);
   assert.equal(targets.find(t => t.name === 'Terra').from[0].name, 'Due');
 });
+
+test('anelli: per le RES, molti anelli da tre corpi in su, con riserva e hotspot', () => {
+  const anchors = [{ name: 'Uno', id64: '1', x: 0, y: 0, z: 0, controllingFaction: FS, factions: [{ name: FS, influence: 1 }], stations: [] }];
+  const sys = (id64, name, x) => ({ id64, name, x, y: 0, z: 0, population: 0, body_count: 1, bodies: [star(`${name} A`)] });
+  const ring = (system_id64, name, type, signals) => ({ system_id64, name, subtype: 'Class I gas giant', reserve_level: 'Pristine', rings: [{ type, signals }] });
+  const targets = buildTargets(anchors, [[sys(10, 'Anelli', 5), sys(11, 'Pochi', 6)]], FS, {
+    ringed: [ring(10, 'Anelli 1', 'Icy', [{ name: 'Void Opal', count: 1 }]), ring(10, 'Anelli 2', 'Metal Rich'), ring(10, 'Anelli 3', 'Icy'), ring(11, 'Pochi 1', 'Rocky')],
+  });
+  assert.deepEqual(targets.map(t => [t.name, t.reasons.map(r => r.key)]), [['Anelli', ['manyRings']], ['Pochi', ['rings']]]);
+  assert.deepEqual(targets[0].rings[0], { body: 'Anelli 1', subtype: 'Class I gas giant', rings: [{ type: 'Icy', reserve: 'Pristine', hotspots: [{ name: 'Void Opal', count: 1 }] }] });
+});

@@ -5,6 +5,9 @@
  */
 
 const SEARCH_URL = 'https://spansh.co.uk/api/systems/search';
+const BODIES_URL = 'https://spansh.co.uk/api/bodies/search';
+/** Tutti i tipi di anello: la ricerca dei corpi con anelli li vuole elencati. */
+const RING_TYPES = ['Icy', 'Rocky', 'Metal Rich', 'Metallic'];
 const PAGE_SIZE = 100;
 const PAUSE_MS = 1000;
 const TIMEOUT_MS = 30_000;
@@ -12,11 +15,11 @@ const TIMEOUT_MS = 30_000;
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 /** Una pagina della ricerca; ritenta due volte se Spansh non risponde. */
-async function searchPage(body, fetchImpl) {
+async function searchPage(body, fetchImpl, url = SEARCH_URL) {
   let lastError;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const response = await fetchImpl(SEARCH_URL, {
+      const response = await fetchImpl(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'User-Agent': 'acfs-colony-plotter (ed-acfs)' },
         body: JSON.stringify(body),
@@ -48,4 +51,25 @@ export async function systemsAround(systemName, radius, { fetchImpl = fetch, pau
     await sleep(pause);
   }
   return systems;
+}
+
+/**
+ * I corpi con anelli entro `radius` ly da `systemName` (la ricerca dei sistemi non dice se un corpo
+ * ha anelli): servono per le RES. Ogni corpo ha `system_id64`, `rings` (tipo, `reserve_level`,
+ * hotspot in `signals`).
+ */
+export async function ringedBodiesAround(systemName, radius, { fetchImpl = fetch, pause = PAUSE_MS } = {}) {
+  const bodies = [];
+  for (let page = 0; ; page++) {
+    const data = await searchPage({
+      filters: { distance: { min: '0', max: String(radius) }, rings: [{ type: RING_TYPES }] },
+      reference_system: systemName,
+      size: PAGE_SIZE,
+      page,
+    }, fetchImpl, BODIES_URL);
+    bodies.push(...(data.results ?? []));
+    if (bodies.length >= (data.count ?? 0) || (data.results ?? []).length === 0) break;
+    await sleep(pause);
+  }
+  return bodies;
 }
