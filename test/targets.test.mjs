@@ -31,6 +31,8 @@ test('punti di partenza: solo i sistemi con una nostra stazione vera, non cantie
   assert.equal(isContactStation({ name: 'Orbital Construction Site: X', type: 'Space Construction Depot' }), false);
   assert.equal(isContactStation({ name: 'System Colonisation Ship', type: 'Planetary Outpost' }), false);
   assert.equal(isContactStation({ name: 'Biggle Port', type: 'Coriolis Starport' }), true);
+  assert.equal(isContactStation({ name: 'Burroughs Settlement', type: 'Settlement' }), false);
+  assert.equal(isContactStation({ name: 'Lamarck Arsenal', type: null }), false);
   const anchors = anchorsFrom([
     { name: 'Nostro', id64: 1, x: 0, y: 0, z: 0, controlling_minor_faction: FS,
       minor_faction_presences: [{ name: FS, influence: 0.6 }, { name: 'Altri', influence: 0.3 }],
@@ -39,7 +41,7 @@ test('punti di partenza: solo i sistemi con una nostra stazione vera, non cantie
       assets: [{ name: 'Orbital Construction Site: Y', type: 'Space Construction Depot', controlling_minor_faction: FS }] },
   ], FS);
   assert.deepEqual(anchors.map(a => a.name), ['Nostro']);
-  assert.deepEqual(factionSplit(anchors[0], FS).map(f => [f.share, f.faction]), [[60, FS], [20, 'Altri'], [13, FS], [6, null]]);
+  assert.deepEqual(factionSplit(anchors[0], FS).map(f => [f.share, f.faction]), [[60, FS], [20, 'Altri'], [13, null], [6, null]]);
 });
 
 test('il 20% va a chi controlla il sistema se non è la fazione della stazione', () => {

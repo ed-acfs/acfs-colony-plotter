@@ -6,10 +6,14 @@
  * Legge il `bgs.json` del tool (record di Spansh con `assets`, l'elenco sintetico delle stazioni).
  */
 
-/** Non sono stazioni con un Contatto: cantieri, navi della colonizzazione, megaship, carrier. */
-const NOT_A_STATION = /construction|colonisation ship|mega ship|fleet carrier|drake-class/i;
+/**
+ * Non hanno il Contatto: cantieri, navi della colonizzazione, megaship, carrier e gli insediamenti
+ * di Odyssey (indicazione dell'utente del 25 ottobre 2026). Gli insediamenti senza tipo in Spansh
+ * restano fuori perché il tipo manca.
+ */
+const NOT_A_STATION = /construction|colonisation ship|mega ship|fleet carrier|drake-class|settlement/i;
 
-/** La stazione può fare da partenza; gli insediamenti di Odyssey per ora sì, come le altre (da verificare). */
+/** La stazione può fare da partenza: ha il Contatto di Colonizzazione. */
 export function isContactStation(asset) {
   if (!asset?.name || !asset.type) return false;
   return !NOT_A_STATION.test(asset.type) && !NOT_A_STATION.test(asset.name);
@@ -44,7 +48,9 @@ export function anchorsFrom(records, faction) {
  * Le fazioni del sistema nuovo se la richiesta parte da una nostra stazione di `anchor` (regola
  * della Colonization Mega Guide, vedi CLAUDE.md del tool): 60% la fazione della stazione (la
  * nostra), 20% chi controlla il sistema se è un'altra, altrimenti la seconda per influenza; 13% la
- * fazione dello Squadrone (la nostra, di nuovo: l'utente lo verificherà al primo caso); 6% un'Anarchy vicina.
+ * fazione dello Squadrone, ma se è già quella della stazione non la riceve di nuovo (indicazione
+ * dell'utente del 25 ottobre 2026: "avrebbe solo il 60%"), e quella quota va a una fazione che
+ * non sappiamo (`faction: null`, `note: 'unknown'`); 6% un'Anarchy vicina.
  */
 export function factionSplit(anchor, faction) {
   const second = anchor.controllingFaction && anchor.controllingFaction !== faction
@@ -53,7 +59,7 @@ export function factionSplit(anchor, faction) {
   return [
     { share: 60, faction },
     { share: 20, faction: second },
-    { share: 13, faction },
+    { share: 13, faction: null, note: 'unknown' },
     { share: 6, faction: null, note: 'anarchy' },
   ];
 }
