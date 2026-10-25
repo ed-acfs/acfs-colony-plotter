@@ -56,7 +56,7 @@ test('stato della colonizzazione', () => {
   assert.equal(colonisationStatus({ population: 132659, is_colonised: false }), 'populated');
 });
 
-test('obiettivi: uniti fra più punti di partenza, abitati esclusi, dal punteggio più alto', () => {
+test('obiettivi: uniti fra più punti di partenza, abitati esclusi, dal punteggio dello scopo migliore', () => {
   const anchors = [
     { name: 'Uno', id64: '1', x: 0, y: 0, z: 0, controllingFaction: FS, factions: [{ name: FS, influence: 1 }], stations: [{ name: 'P1', type: 'Outpost' }] },
     { name: 'Due', id64: '2', x: 10, y: 0, z: 0, controllingFaction: FS, factions: [{ name: FS, influence: 1 }], stations: [{ name: 'P2', type: 'Outpost' }] },
@@ -67,7 +67,11 @@ test('obiettivi: uniti fra più punti di partenza, abitati esclusi, dal punteggi
     [sys(10, 'Acqua', 6, [star('a'), planet('a1', 'Water world')]), sys(13, 'Terra', 20, [star('d'), planet('d1', 'Earth-like world')])],
   ];
   const targets = buildTargets(anchors, found, FS);
-  assert.deepEqual(targets.map(t => t.name), ['Terra', 'Acqua', 'Vuoto']);
+  // Water world (fattoria, 5) e Earth-like (turismo, 5) pari: vince il più vicino a un punto di partenza.
+  assert.deepEqual(targets.map(t => t.name), ['Acqua', 'Terra', 'Vuoto']);
+  assert.equal(targets[0].bestPurpose, 'agriculture');
+  assert.equal(targets[1].bestPurpose, 'tourism');
+  assert.equal(targets[2].bestPurpose, null);
   const acqua = targets.find(t => t.name === 'Acqua');
   assert.deepEqual(acqua.from.map(f => [f.name, f.distance]), [['Due', 4], ['Uno', 6]]);
   assert.equal(targets.find(t => t.name === 'Terra').from[0].name, 'Due');
@@ -81,5 +85,11 @@ test('anelli: per le RES, molti anelli da tre corpi in su, con riserva e hotspot
     ringed: [ring(10, 'Anelli 1', 'Icy', [{ name: 'Void Opal', count: 1 }]), ring(10, 'Anelli 2', 'Metal Rich'), ring(10, 'Anelli 3', 'Icy'), ring(11, 'Pochi 1', 'Rocky')],
   });
   assert.deepEqual(targets.map(t => [t.name, t.reasons.map(r => r.key)]), [['Anelli', ['manyRings']], ['Pochi', ['rings']]]);
+  assert.equal(targets[0].reserve, 'Pristine');
   assert.deepEqual(targets[0].rings[0], { body: 'Anelli 1', subtype: 'Class I gas giant', rings: [{ type: 'Icy', reserve: 'Pristine', hotspots: [{ name: 'Void Opal', count: 1 }] }] });
+});
+
+test('"Not terraformable" non è terraformabile', () => {
+  assert.deepEqual(reasonsFor([planet('A 1', 'Rocky body', { terraforming_state: 'Not terraformable' })]), []);
+  assert.deepEqual(reasonsFor([planet('A 1', 'Rocky body', { terraforming_state: 'Terraformable' })]).map(r => r.key), ['terraformable']);
 });

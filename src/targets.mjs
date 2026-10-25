@@ -4,7 +4,9 @@
  * una volta sola, con tutti i punti di partenza dal più vicino.
  */
 import { factionSplit } from './anchors.mjs';
-import { reasonsFor, scoreOf } from './interesting.mjs';
+import { interestingBodies } from './bodies.mjs';
+import { reasonsFor } from './interesting.mjs';
+import { purposeScores } from './purposes.mjs';
 
 /** Il raggio entro cui si può reclamare un sistema dal Contatto (ly). */
 export const CLAIM_RADIUS_LY = 15;
@@ -31,7 +33,7 @@ export function colonisationStatus(system) {
  * `found`: per ogni punto di partenza (`anchors`, stesso ordine), i sistemi che la ricerca ha dato
  * attorno; `ringed`: i corpi con anelli trovati attorno ai punti di partenza (in qualunque ordine).
  * Restano i sistemi liberi o reclamati (questi segnati, per sapere che sono presi), senza i punti
- * di partenza stessi; ordinati dal punteggio più alto.
+ * di partenza stessi; ordinati dal punteggio dello scopo migliore (vedi purposes.mjs).
  */
 export function buildTargets(anchors, found, faction, { radius = CLAIM_RADIUS_LY, ringed = [] } = {}) {
   const targets = new Map();
@@ -53,6 +55,7 @@ export function buildTargets(anchors, found, faction, { radius = CLAIM_RADIUS_LY
       if (!target) {
         const ringedHere = ringsBySystem.get(id64) ?? [];
         const reasons = reasonsFor(system.bodies ?? [], system.body_count ?? (system.bodies ?? []).length, ringedHere);
+        const { scores, best, reserve } = purposeScores(system.bodies ?? [], ringedHere);
         target = {
           name: system.name,
           id64,
@@ -71,8 +74,12 @@ export function buildTargets(anchors, found, faction, { radius = CLAIM_RADIUS_LY
               hotspots: (r.signals ?? []).map(s => ({ name: s.name, count: s.count })),
             })),
           })),
+          reserve,
+          bodies: interestingBodies(system.bodies ?? [], new Set(ringedHere.map(b => b.name))),
           reasons,
-          score: scoreOf(reasons),
+          purposes: scores,
+          bestPurpose: best,
+          score: best ? scores[best].score : 0,
           spanshUpdatedAt: system.updated_at ?? null,
           from: [],
         };

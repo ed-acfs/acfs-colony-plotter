@@ -3,8 +3,9 @@
  * di Spansh (`type`, `subtype`, `landmarks`). Criteri dell'utente (25 ottobre 2026): Earth-like,
  * Water world, due o più stelle; quelli del Colony Finder dei Canonn "certamente in linea": molti
  * corpi, stelle e pianeti rari, giganti gassosi con vita, segnali biologici. Gli anelli (per le RES)
- * li ha chiesti un contrammiraglio dello Squadrone il 25 ottobre 2026. Ogni motivo ha un peso,
- * e il punteggio (la somma) ordina gli obiettivi: i pesi sono qui sotto, da ritoccare a piacere.
+ * li ha chiesti un contrammiraglio dello Squadrone il 25 ottobre 2026. Dal 25 ottobre 2026 l'ordine
+ * degli obiettivi lo dà il punteggio per scopo (purposes.mjs, decisione dell'utente); i motivi
+ * restano le etichette da mostrare, e il loro peso ne decide solo l'ordine.
  */
 
 /** Più corpi di così: un sistema grande, da molte strutture. */
@@ -53,7 +54,7 @@ export function reasonsFor(bodies = [], bodyCount = bodies.length, ringed = []) 
       if (subtype === 'Ammonia world') add('ammoniaWorld', body);
       if (subtype === 'Water giant') add('waterGiant', body);
       if (/gas giant with .*life/i.test(subtype)) add('lifeGasGiant', body);
-      if (/terraformable|candidate/i.test(body.terraforming_state ?? '')) add('terraformable', body);
+      if (isTerraformable(body)) add('terraformable', body);
     }
     if (body.type === 'Star' && RARE_STAR_MARKERS.some(marker => subtype.includes(marker))) add('rareStar', body);
     if ((body.landmarks ?? []).some(isBiology)) add('biology', body);
@@ -74,4 +75,10 @@ export function scoreOf(reasons) {
 /** Un landmark biologico (una specie, con un valore per l'esobiologia), non un geyser o una fumarola. */
 function isBiology(landmark) {
   return typeof landmark?.value === 'number' && landmark.value > 0;
+}
+
+/** Terraformabile per Spansh ("Terraformable", "Candidate for terraforming"); "Not terraformable" no. */
+export function isTerraformable(body) {
+  const state = body.terraforming_state ?? '';
+  return /terraformable|candidate/i.test(state) && !/^not/i.test(state);
 }
