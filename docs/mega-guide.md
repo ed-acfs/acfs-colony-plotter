@@ -12,6 +12,13 @@ Le regole che decidono il comportamento del motore stanno anche nel `CLAUDE.md` 
 - **Periodo di esclusiva** (patch 4.4.1.2): completato il porto primario, solo l'architetto può reclamare da lì per **30 minuti**, poi tutto il suo Squadrone per **23,5 ore**, poi chiunque. Per un ponte dello Squadrone è il momento in cui il pilota successivo deve essere pronto.
 - **Porto primario**: è l'unica struttura che non si può mai demolire; la sua posizione nel sistema è fissa (la bandierina nella mappa del sistema in modalità architetto) e non si legge da Spansh.
 
+## Scegliere il porto primario (aggiunto il 22 novembre 2026)
+
+- Il porto primario è sempre uno **spazioporto** (Tier 1 Outpost, Tier 2 Coriolis o Asteroid base, Tier 3 Orbis o Ocellus), il tipo lo sceglie l'architetto, la posizione è fissa. Costa il 17-25% di materiali in più dello stesso porto non primario; un Outpost richiede almeno 29 carichi di una Cutter, un'Orbis 267.
+- **Porti "Colony"** (ereditano l'economia dal corpo su cui stanno, "local body", lune escluse): Civilian e Commercial Outpost, Coriolis, Orbis, Ocellus, Civilian Planetary Outpost, Planetary Port. **Porti specializzati** (economia fissa): Industrial Outpost (Industrial), Scientific Outpost (High Tech), Military Outpost (Military), Criminal Outpost (Contraband), Asteroid base (Extraction).
+- Criteri della guida: nei ponti un Outpost; lontano dalla stella principale (stelle B, C…) quasi sempre un Outpost; se il corpo del porto ha le economie che si vogliono per il sistema, è un buon candidato per un Tier 2 o 3; **se non corrisponde, meglio un Outpost specializzato**.
+- Statistiche date al sistema (dai dati di [Raven Colonial](https://github.com/njthomson/RavenColonialWeb), `src/site-data.ts`, GPL-3.0: solo i valori): Commercial (Plutus) ricchezza 3, qualità della vita 5; Civilian (Vesta) ricchezza 1, qualità della vita 2, sviluppo 1; Industrial (Vulcan) tecnologia 3, sviluppo 3; Scientific (Prometheus) tecnologia 3; Military (Nemesis) sicurezza +2. Per questo, fra i due Outpost "Colony", il tool consiglia il Commercial.
+
 ## Fazioni del sistema nuovo
 
 Con uno Squadrone associato a una minor faction: **60%** la fazione che controlla la **stazione** di partenza; **20%** chi controlla il **sistema** di partenza, se è un'altra, altrimenti la seconda per influenza; **13%** la fazione dello Squadrone; **6%** un'Anarchy dal sistema più vicino in cui è presente. Correzione dell'utente (25 ottobre 2026): se la stazione è nostra, Flotta Stellare ha solo il 60%, non anche il 13%. Le strutture costruite dopo il porto primario vanno a fazioni del sistema scelte a caso.
